@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AeroZag — Passenger Experience AI for Regional Airlines</title>
+<script>
+  // Single source of truth for the backend API.
+  // Localhost during dev; Railway URL in production. Update the production URL after deploy.
+  window.AEROZAG_API_BASE =
+    (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+      ? 'http://localhost:3000'
+      : 'https://aerozag-backend-production.up.railway.app';
+</script>
+<meta name="description" content="AeroZag is the AI passenger experience layer for regional airlines — one intelligent interface that handles every query, add-on, payment, and escalation." />
+<link rel="icon" href="assets/favicon.ico" sizes="any" />
+<link rel="apple-touch-icon" href="assets/icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --slate:#3A525F;        /* Primary / Deep Slate */
+    --slate-deep:#2B3E48;
+    --orange:#C05430;       /* Accent / Burnt Orange */
+    --orange-soft:#FBEEE7;
+    --gray:#72797C;         /* Neutral / Cool Gray */
+    --white:#F6F7F7;        /* Background / Cloud White */
+    --frost:#ECEEF0;        /* Surface / Frost */
+    --ink:#1C2A30;
+    --line:#DCE0E2;
+    --maxw:1200px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:#fff;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  a{text-decoration:none;color:inherit}
+  .serif{font-family:'Lora',Georgia,serif}
+
+  /* ---------- Top utility bar ---------- */
+  .utility{background:var(--slate-deep);color:#cfd7da;font-size:13px}
+  .utility .wrap{display:flex;align-items:center;justify-content:space-between;height:38px}
+  .utility .tag{font-weight:600;letter-spacing:.02em;color:#fff}
+  .utility .tag span{color:var(--orange)}
+  .utility nav{display:flex;gap:22px}
+  .utility nav a{transition:color .2s}
+  .utility nav a:hover{color:#fff}
+
+  /* ---------- Primary nav ---------- */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--slate)}
+  .logo-img{display:none}
+  .logo-mark{height:36px;width:auto;display:block;filter:invert(27%) sepia(20%) saturate(600%) hue-rotate(160deg) brightness(80%)}
+  .logo-footer{font-weight:800;font-size:22px;letter-spacing:-.02em;color:#fff;gap:11px}
+  .foot-mark{height:36px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.9}
+  .nav-links{display:flex;align-items:center;gap:34px}
+  .nav-links>a{font-weight:600;font-size:15px;color:var(--ink);transition:color .2s}
+  .nav-links>a:hover{color:var(--orange)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;border-radius:7px;padding:11px 22px;transition:all .2s;cursor:pointer;border:none}
+  .btn-primary{background:var(--orange);color:#fff}
+  .btn-primary:hover{background:#a8431f;transform:translateY(-1px)}
+  .btn-ghost{border:1.5px solid var(--slate);color:var(--slate);background:transparent}
+  .btn-ghost:hover{background:var(--slate);color:#fff}
+  .btn-light{background:#fff;color:var(--slate)}
+  .btn-light:hover{background:var(--frost)}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;background:radial-gradient(120% 130% at 80% 0%, #44616f 0%, var(--slate) 42%, var(--slate-deep) 100%);color:#fff;overflow:hidden}
+  .hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23ffffff' stroke-width='.4' opacity='.05'/%3E%3C/svg%3E");pointer-events:none}
+  .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding-top:84px;padding-bottom:90px}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:7px 15px;border-radius:30px;margin-bottom:26px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}
+  .hero h1{font-size:clamp(38px,5vw,62px);line-height:1.04;font-weight:800;letter-spacing:-.025em;margin-bottom:22px}
+  .hero h1 .accent{color:#F0A98C}
+  .hero p.lede{font-size:19px;line-height:1.6;color:#d8e0e3;max-width:520px;margin-bottom:34px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-stats{display:flex;gap:40px;margin-top:46px;padding-top:30px;border-top:1px solid rgba(255,255,255,.15)}
+  .hero-stats .s b{display:block;font-size:30px;font-weight:800;color:#fff;letter-spacing:-.02em}
+  .hero-stats .s span{font-size:13.5px;color:#b9c4c8}
+
+  /* hero visual */
+  .hero-visual{position:relative;aspect-ratio:1/1;max-width:440px;justify-self:end;width:100%}
+  .orbit{position:absolute;inset:0;border:1px solid rgba(255,255,255,.14);border-radius:50%}
+  .orbit.o2{inset:14%}
+  .orbit.o3{inset:28%}
+  .node{position:absolute;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:13px;padding:13px 16px;backdrop-filter:blur(6px);font-size:13px}
+  .node b{display:block;font-size:20px;color:#F0A98C;font-weight:800;letter-spacing:-.01em}
+  .node span{color:#cdd6d9}
+  .node.n1{top:6%;left:4%}
+  .node.n2{top:36%;right:-2%}
+  .node.n3{bottom:6%;left:18%}
+  .core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:104px;height:104px;border-radius:24px;background:var(--orange);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 50px rgba(192,84,48,.45)}
+  .core svg{width:54px;height:54px}
+
+  /* ---------- generic section ---------- */
+  section{padding:96px 0}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:14px}
+  h2.sec{font-size:clamp(28px,3.6vw,42px);font-weight:800;letter-spacing:-.025em;line-height:1.1;color:var(--slate)}
+  .sec-lead{font-size:18px;color:var(--gray);max-width:660px;margin-top:18px;line-height:1.65}
+
+  /* ---------- Mission manifesto strip ---------- */
+  .manifesto{background:var(--white);text-align:center}
+  .manifesto .wrap{max-width:920px}
+  .manifesto .serif{font-size:clamp(24px,3vw,36px);line-height:1.4;color:var(--ink);font-weight:500}
+  .manifesto .serif b{color:var(--slate);font-weight:600}
+  .manifesto .src{margin-top:26px;font-size:14px;color:var(--gray);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+
+  /* ---------- Pillars ---------- */
+  .pillars{background:#fff}
+  .pillar-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:54px}
+  .pillar{position:relative;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:34px 32px;transition:all .25s;overflow:hidden}
+  .pillar::before{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--orange);transform:scaleY(0);transform-origin:top;transition:transform .25s}
+  .pillar:hover{border-color:var(--slate);box-shadow:0 18px 50px rgba(43,62,72,.10);transform:translateY(-3px)}
+  .pillar:hover::before{transform:scaleY(1)}
+  .pillar .picon{width:50px;height:50px;border-radius:12px;background:var(--slate);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .pillar .picon svg{width:26px;height:26px;stroke:#fff}
+  .pillar h3{font-size:21px;font-weight:700;color:var(--slate);margin-bottom:10px;letter-spacing:-.01em}
+  .pillar p{font-size:15px;color:var(--gray);line-height:1.62}
+  .pillar .feats{margin-top:18px;display:flex;flex-wrap:wrap;gap:7px}
+  .pillar .feats span{font-size:12.5px;font-weight:600;color:var(--slate);background:var(--frost);padding:5px 11px;border-radius:20px}
+
+  /* ---------- Difference / positioning ---------- */
+  .diff{background:var(--slate);color:#fff}
+  .diff .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
+  .diff h2{color:#fff}
+  .diff .kicker{color:#F0A98C}
+  .diff p{color:#cdd6d9;font-size:17px;margin-top:18px;line-height:1.65}
+  .matrix{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden}
+  .matrix .row{display:grid;grid-template-columns:1.4fr 1fr 1fr;align-items:center;padding:16px 22px;font-size:14.5px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .matrix .row:last-child{border-bottom:none}
+  .matrix .head{background:rgba(255,255,255,.06);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#aab8bd}
+  .matrix .row .who{font-weight:600}
+  .matrix .row.us{background:rgba(192,84,48,.14)}
+  .matrix .row.us .who{color:#F0A98C}
+  .matrix .yes{color:#6BD3A0;font-weight:700}
+  .matrix .no{color:#90a0a6}
+  .matrix .star{color:#F0A98C;font-weight:700}
+
+  /* ---------- Values ---------- */
+  .values{background:var(--frost)}
+  .val-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:50px}
+  .val{background:#fff;border-radius:14px;padding:30px 26px;border:1px solid var(--line)}
+  .val .num{font-size:13px;font-weight:800;color:var(--orange);letter-spacing:.1em}
+  .val h4{font-size:18px;font-weight:700;color:var(--slate);margin:12px 0 9px}
+  .val p{font-size:14.5px;color:var(--gray);line-height:1.6}
+
+  /* ---------- Audience / who we talk to ---------- */
+  .audience{background:#fff}
+  .aud-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:50px}
+  .aud{border:1px solid var(--line);border-radius:14px;padding:28px 26px;transition:.2s}
+  .aud:hover{border-color:var(--orange);background:var(--orange-soft)}
+  .aud .role{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+  .aud p{font-size:15px;color:var(--ink);line-height:1.55;margin-bottom:16px}
+  .aud .proof{font-size:13.5px;color:var(--gray);border-top:1px dashed var(--line);padding-top:14px}
+  .aud .proof b{color:var(--slate)}
+
+  /* ---------- Launch / approach timeline ---------- */
+  .approach{background:var(--white)}
+  .phase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:50px}
+  .phase{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px 28px;position:relative}
+  .phase .ph{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--slate);padding:5px 13px;border-radius:20px;margin-bottom:18px}
+  .phase h4{font-size:20px;font-weight:700;color:var(--slate);margin-bottom:10px}
+  .phase p{font-size:14.5px;color:var(--gray);line-height:1.6}
+
+  /* ---------- Belief / quote ---------- */
+  .belief{background:var(--slate-deep);color:#fff;text-align:center}
+  .belief .wrap{max-width:860px}
+  .belief .serif{font-size:clamp(26px,3.4vw,40px);line-height:1.35;font-weight:500;font-style:italic}
+  .belief .serif b{color:#F0A98C;font-style:normal;font-weight:600}
+
+  /* ---------- CTA band ---------- */
+  .cta{background:var(--orange);color:#fff;text-align:center}
+  .cta h2{color:#fff;font-size:clamp(28px,3.6vw,42px);font-weight:800;letter-spacing:-.02em}
+  .cta p{font-size:18px;color:#ffe7dc;margin-top:16px;max-width:560px;margin-left:auto;margin-right:auto}
+  .cta .btns{margin-top:30px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .cta .btn-dark{background:var(--slate-deep);color:#fff}
+  .cta .btn-dark:hover{background:#1b2a32}
+
+  /* ---------- Footer ---------- */
+  footer{background:var(--slate-deep);color:#aeb9bd;padding:70px 0 30px}
+  .foot-grid{display:grid;grid-template-columns:1.5fr repeat(4,1fr);gap:40px}
+  .foot-brand .logo{color:#fff;margin-bottom:16px}
+  .foot-brand p{font-size:14px;line-height:1.6;max-width:280px;color:#9aa6aa}
+  .foot-col h5{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;margin-bottom:16px}
+  .foot-col a{display:block;font-size:14px;color:#9aa6aa;margin-bottom:11px;transition:.2s}
+  .foot-col a:hover{color:#fff}
+  .foot-bottom{margin-top:50px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#7e8b8f;flex-wrap:wrap;gap:12px}
+
+
+  /* ---------- responsive ---------- */
+  @media(max-width:900px){
+    .hero .wrap,.diff .wrap{grid-template-columns:1fr}
+    .hero-visual{display:none}
+    .pillar-grid,.val-grid,.aud-grid,.phase-grid{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    .utility nav,.nav-links>a{display:none}
+    .nav-links .btn{display:inline-flex}
+  }
+</style>
+</head>
+<body>
+
+<!-- Utility bar -->
+<div class="utility">
+  <div class="wrap">
+    <div class="tag">Intelligence Born of the Sky<span> · #SkyDeepIntelligence</span></div>
+    <nav>
+      <a href="#about">Who We Are</a>
+      <a href="#investors">Investors</a>
+      <a href="#approach">Insights</a>
+      <a href="#careers">Careers</a>
+    </nav>
+  </div>
+</div>
+
+<!-- Primary nav -->
+<header class="nav">
+  <div class="wrap">
+    <a href="#" class="logo">
+      <img src="assets/mark.png" alt="" class="logo-mark" />
+      AeroZag
+    </a>
+    <nav class="nav-links">
+      <a href="#product">The Product</a>
+      <a href="#difference">Why AeroZag</a>
+      <a href="#audience">Who We Serve</a>
+      <a href="#approach">How We Partner</a>
+      <button class="btn btn-primary" onclick="openDemo()">Book a Demo</button>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" style="padding:0">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="dot"></span> Passenger Experience AI · Built for Regional Airlines</span>
+      <h1>Every passenger. <span class="accent">One intelligent interface.</span></h1>
+      <p class="lede">AeroZag is the AI layer that sits between your airline and your passengers — handling queries, managing add-ons, processing payments, and escalating tickets only when a human is truly needed. Built specifically for airlines. Live from day one.</p>
+      <div class="hero-cta">
+        <button class="btn btn-primary" onclick="openDemo()">See a Live Demo →</button>
+        <a href="#product" class="btn btn-light">How It Works</a>
+      </div>
+      <div class="hero-stats">
+        <div class="s"><b>1</b><span>Unified Interface</span></div>
+        <div class="s"><b>Queries · Add-ons · Payments</b><span>All in one conversation</span></div>
+        <div class="s"><b>Escalate Less</b><span>Human agents only when it counts</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="orbit"></div><div class="orbit o2"></div><div class="orbit o3"></div>
+      <div class="node n1"><b>Instant</b><span>Query resolution</span></div>
+      <div class="node n2"><b>In-chat</b><span>Add-ons &amp; payment</span></div>
+      <div class="node n3"><b>Smart</b><span>Ticket escalation</span></div>
+      <div class="core">
+        <svg viewBox="0 0 40 40" fill="none"><path d="M20 5 L33 31 H7 Z" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><circle cx="20" cy="5" r="3.2" fill="#fff"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mission manifesto -->
+<section class="manifesto">
+  <div class="wrap">
+    <div class="kicker" style="text-align:center;margin-bottom:22px">Our Mission</div>
+    <p class="serif">To embed <b>AI-native intelligence into every airline</b> — starting with the passenger experience — so every carrier, no matter its size, can move faster, earn more, and make every passenger feel like they are the only one on board.</p>
+    <div class="src">AeroZag · Intelligence Born of the Sky</div>
+  </div>
+</section>
+
+<!-- Product -->
+<section class="pillars" id="product">
+  <div class="wrap">
+    <div class="kicker">What We Deliver Today</div>
+    <h2 class="sec">One product, laser-focused on<br>the passenger conversation.</h2>
+    <p class="sec-lead">We started where airlines feel the most pain and passengers feel the most friction — the moment after booking, before boarding, and when something goes wrong.</p>
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>AI Customer Query Resolution</h3>
+        <p>Every common passenger question — flight status, baggage policy, check-in windows, rebooking options — answered instantly and accurately in natural language, 24/7, without a human agent.</p>
+        <div class="feats"><span>Natural Language</span><span>24/7 Availability</span><span>Multi-channel</span><span>Instant Response</span></div>
+      </div>
+      <div class="pillar">
+        <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <h3>In-Chat Add-on Management</h3>
+        <p>Passengers can browse, select, and purchase seat upgrades, extra baggage, meals, and travel insurance directly inside the chat — no app switch, no redirect, no drop-off.</p>
+        <div class="feats"><span>Seat Upgrades</span><span>Extra Baggage</span><span>Meals &amp; Extras</span><span>Travel Insurance</span></div>
+      </div>
+      <div class="pillar">
+        <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <h3>Seamless In-Chat Payment</h3>
+        <p>Payment happens inside the conversation. Secure, PCI-compliant, and frictionless — passengers complete transactions without ever leaving the chat interface they're already in.</p>
+        <div class="feats"><span>PCI Compliant</span><span>UPI · Cards · Wallets</span><span>Zero Redirect</span><span>Instant Confirmation</span></div>
+      </div>
+      <div class="pillar">
+        <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.48 2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <h3>Smart Ticket Escalation</h3>
+        <p>The AI knows when it can't help — and hands off gracefully. Human agents receive a full conversation summary, passenger context, and issue classification, so they solve it faster with zero repetition for the passenger.</p>
+        <div class="feats"><span>Intelligent Routing</span><span>Full Context Handoff</span><span>Priority Tagging</span><span>Agent Dashboard</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Roadmap strip -->
+<section style="background:var(--frost);padding:60px 0">
+  <div class="wrap">
+    <div class="kicker">The Roadmap</div>
+    <h2 class="sec" style="margin-bottom:14px">We start with passengers.<br>Then we go deeper.</h2>
+    <p class="sec-lead" style="margin-bottom:40px">Passenger Intelligence is the entry point. As the data compounds, we expand into commercial and operational layers — becoming the intelligence backbone of the entire airline.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+      <div style="padding:26px 22px;background:#fff;border-right:1px solid var(--line)">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--orange);text-transform:uppercase;margin-bottom:10px">Now · Active</div>
+        <div style="font-weight:700;color:var(--slate);font-size:16px;margin-bottom:8px">Passenger Intelligence</div>
+        <div style="font-size:13.5px;color:var(--gray)">Query resolution, add-ons, payments, smart escalation</div>
+      </div>
+      <div style="padding:26px 22px;background:#fff;border-right:1px solid var(--line);opacity:.7">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--gray);text-transform:uppercase;margin-bottom:10px">Next · 2026</div>
+        <div style="font-weight:700;color:var(--slate);font-size:16px;margin-bottom:8px">Commercial Intelligence</div>
+        <div style="font-size:13.5px;color:var(--gray)">Revenue management, ancillary uplift, demand shaping</div>
+      </div>
+      <div style="padding:26px 22px;background:#fff;border-right:1px solid var(--line);opacity:.5">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--gray);text-transform:uppercase;margin-bottom:10px">Future · 2027</div>
+        <div style="font-weight:700;color:var(--slate);font-size:16px;margin-bottom:8px">Operations Intelligence</div>
+        <div style="font-size:13.5px;color:var(--gray)">Crew, disruptions, maintenance, turnaround</div>
+      </div>
+      <div style="padding:26px 22px;background:#fff;opacity:.4">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--gray);text-transform:uppercase;margin-bottom:10px">Vision · 2028</div>
+        <div style="font-weight:700;color:var(--slate);font-size:16px;margin-bottom:8px">Enterprise Intelligence</div>
+        <div style="font-size:13.5px;color:var(--gray)">Full AI infrastructure — the cognitive backbone</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Difference / positioning matrix -->
+<section class="diff" id="difference">
+  <div class="wrap">
+    <div>
+      <div class="kicker">Where We Play</div>
+      <h2 class="sec">Airline-deep <em>and</em> AI-native.<br>That combination is rare.</h2>
+      <p>Generic IT firms treat airlines as one of twenty verticals. Boutique consultancies advise brilliantly but cannot build or run systems. AeroZag is the only partner that understands yield management, slot coordination, crew legality, and MRO planning at an expert level — and can build, deploy, and operate the AI that optimizes them in real time.</p>
+    </div>
+    <div class="matrix">
+      <div class="row head"><span>Competitor</span><span>Airline-Deep</span><span>AI-Native · Lifecycle</span></div>
+      <div class="row"><span class="who">Big IT Services</span><span class="no">Shallow</span><span class="no">No · Partial</span></div>
+      <div class="row"><span class="who">Aviation Consultancies</span><span class="yes">Deep</span><span class="no">No · Advisory</span></div>
+      <div class="row"><span class="who">Point Solution Vendors</span><span class="no">Narrow</span><span class="no">Sometimes</span></div>
+      <div class="row us"><span class="who">AeroZag</span><span class="yes">Deep</span><span class="star">Yes · Strategy → Sky</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Values -->
+<section class="values" id="about">
+  <div class="wrap">
+    <div class="kicker">Who We Are</div>
+    <h2 class="sec">The Sage Strategist.<br>Deep wisdom, decisive action.</h2>
+    <p class="sec-lead">We don't shout or boast — we demonstrate. We don't hype AI — we deliver measurable outcomes. Authoritative yet approachable, premium yet accessible.</p>
+    <div class="val-grid">
+      <div class="val"><div class="num">01</div><h4>Sky-Deep Expertise</h4><p>We don't dabble in aviation; we live and breathe it. Our solutions are built by people who have run airline operations, not just studied them.</p></div>
+      <div class="val"><div class="num">02</div><h4>Intelligence as Infrastructure</h4><p>AI is not a feature we add — it's the foundation we build on. No product ships without an AI core. No engagement ends with just a slide deck.</p></div>
+      <div class="val"><div class="num">03</div><h4>From Strategy to Sky</h4><p>We don't stop at recommendations. Every engagement includes implementation, measurement, and continuous optimization — whiteboard to wing.</p></div>
+      <div class="val"><div class="num">04</div><h4>Radical Transparency</h4><p>Airlines trust us with their most sensitive data. We earn it through clear pricing, open architectures, no vendor lock-in, and published performance metrics.</p></div>
+      <div class="val"><div class="num">05</div><h4>Passenger Obsession</h4><p>Behind every data point is a person. Every AI model is evaluated not just on revenue lift, but on passenger-satisfaction impact.</p></div>
+      <div class="val"><div class="num">06</div><h4>Precise, Yet Warm</h4><p>We know managing 14,000 daily departures is not a spreadsheet problem. We built intelligence that thinks at the scale of your operation.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Audience -->
+<section class="audience" id="audience">
+  <div class="wrap">
+    <div class="kicker">Who We Serve</div>
+    <h2 class="sec">Built for regional &amp; low-cost carriers<br>who compete on experience.</h2>
+    <p class="sec-lead">You don't have the support headcount of a legacy carrier. You don't need it — you need intelligence that scales without hiring.</p>
+    <div class="aud-grid">
+      <div class="aud"><div class="role">CEOs &amp; Founders</div><p>Your passengers judge you on every interaction, not just the flight. One bad support experience loses a customer forever.</p><div class="proof"><b>What changes:</b> Every passenger query resolved instantly, every add-on sold conversationally, every escalation handled with context.</div></div>
+      <div class="aud"><div class="role">Chief Commercial Officers</div><p>Add-on revenue is sitting on the table. Passengers want to buy — they just abandon when the process is too hard.</p><div class="proof"><b>What changes:</b> In-chat add-on selection and payment with zero friction, zero redirect, zero drop-off.</div></div>
+      <div class="aud"><div class="role">Chief Digital / Tech Officers</div><p>You need something that integrates cleanly, deploys fast, and doesn't require a 12-month implementation project.</p><div class="proof"><b>What changes:</b> API-first integration, live in weeks, connects to your existing booking and PMS systems.</div></div>
+      <div class="aud"><div class="role">Head of Customer Experience</div><p>Your support team is drowning in repetitive queries. They should be solving real problems, not answering "what's my baggage allowance" for the 300th time.</p><div class="proof"><b>What changes:</b> AI handles the repetitive 80%. Agents get only escalations — with full context already summarised.</div></div>
+      <div class="aud"><div class="role">Head of Revenue / Ancillary</div><p>Ancillary is the margin. But most airlines monetize it only at booking — not at every touchpoint where a passenger is ready to buy.</p><div class="proof"><b>What changes:</b> Contextual add-on offers surfaced at exactly the right moment in the passenger journey.</div></div>
+      <div class="aud"><div class="role">Investors &amp; Partners</div><p>AeroZag is building the AI passenger experience layer for an industry where even small carriers need enterprise-grade intelligence.</p><div class="proof"><b>The opportunity:</b> Every regional airline globally. No direct specialist competitor in this space.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Approach / launch phases -->
+<section class="approach" id="approach">
+  <div class="wrap">
+    <div class="kicker">How We Partner</div>
+    <h2 class="sec">From first conversation<br>to live in weeks — not months.</h2>
+    <p class="sec-lead">We don't sell you a 12-month roadmap and disappear. We get live fast, prove value, then expand together.</p>
+    <div class="phase-grid">
+      <div class="phase"><span class="ph">Week 1–2 · Align</span><h4>Understand Your Operation</h4><p>We map your most common passenger queries, your add-on catalogue, your payment stack, and your current escalation flow. No generic assumptions — your airline, your data, your passengers.</p></div>
+      <div class="phase"><span class="ph">Week 3–5 · Build</span><h4>Configure &amp; Integrate</h4><p>We configure the AI on your content, connect to your booking and payment systems via API, and build the escalation routing to your agent team. Everything tested, nothing assumed.</p></div>
+      <div class="phase"><span class="ph">Week 6+ · Compound</span><h4>Live, Measure, Expand</h4><p>Go live. We track query resolution rates, add-on conversion, escalation volume, and passenger satisfaction. Every week the AI gets sharper. Every quarter we identify the next layer to unlock.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Belief -->
+<section class="belief">
+  <div class="wrap">
+    <div class="kicker" style="color:#F0A98C;text-align:center;margin-bottom:24px">Our Belief</div>
+    <p class="serif">"The sky generates more data than any other industry on Earth. It is time that data became <b>intelligence.</b> It is time the sky started thinking."</p>
+  </div>
+</section>
+
+<!-- CTA / contact -->
+<section class="cta" id="contact">
+  <div class="wrap">
+    <h2>See it working on a real airline conversation.</h2>
+    <p>Book a 30-minute live demo. We'll run through actual passenger scenarios — queries, add-on purchases, payment, escalation — and show you exactly what your passengers would experience.</p>
+    <div class="btns">
+      <button class="btn btn-light" onclick="openDemo()">Book a Live Demo →</button>
+      <a href="#product" class="btn btn-dark">See How It Works</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="logo logo-footer">
+          <img src="assets/mark.png" alt="" class="foot-mark" style="height:38px" />
+          AeroZag
+        </a>
+        <p>The tech-native, airline-specialist company embedding AI intelligence into every system, every decision, and every flight.</p>
+      </div>
+      <div class="foot-col"><h5>What We Do</h5><a href="#pillars">Commercial Intelligence</a><a href="#pillars">Operations Intelligence</a><a href="#pillars">Passenger Intelligence</a><a href="#pillars">Enterprise Intelligence</a></div>
+      <div class="foot-col"><h5>Who We Serve</h5><a href="#audience">Full-Service Carriers</a><a href="#audience">Low-Cost Airlines</a><a href="#audience">Airline Groups</a><a href="#audience">Investors</a></div>
+      <div class="foot-col"><h5>Company</h5><a href="#about">Who We Are</a><a href="#difference">Why AeroZag</a><a href="#approach">How We Partner</a><a href="#contact">Contact</a></div>
+      <div class="foot-col"><h5>Connect</h5><a href="mailto:hello@aerozag.com">hello@aerozag.com</a><a href="#contact">Executive Briefing</a><a href="#careers">Careers</a><a href="#">LinkedIn</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 AeroZag. Intelligence Born of the Sky.</span>
+      <span>Privacy · Terms · Responsible AI</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ Book a Demo modal ============ -->
+<div class="demo-overlay" id="demoOverlay" onclick="if(event.target===this)closeDemo()">
+  <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+    <button class="demo-x" onclick="closeDemo()" aria-label="Close">✕</button>
+    <div class="demo-grid">
+      <!-- Left rail: value reassurance -->
+      <aside class="demo-aside">
+        <div class="demo-aside-top">
+          <img src="assets/mark.png" alt="" class="demo-logo" />
+          <div class="demo-aside-brand">AeroZag</div>
+        </div>
+        <h3 class="demo-aside-h">See it on a real airline conversation.</h3>
+        <ul class="demo-points">
+          <li><span>✓</span> 30-minute live walkthrough with our team</li>
+          <li><span>✓</span> Run on your actual passenger scenarios</li>
+          <li><span>✓</span> Queries, add-ons, payment &amp; escalation in action</li>
+          <li><span>✓</span> No commitment, no pressure</li>
+        </ul>
+        <div class="demo-aside-foot">
+          Prefer to chat first? <a href="#" onclick="closeDemo();openChat();return false;">Talk to Zara →</a>
+        </div>
+      </aside>
+
+      <!-- Right: form -->
+      <div class="demo-form-side">
+        <div id="demoFormWrap">
+          <h2 id="demoTitle" class="demo-title">Book your demo</h2>
+          <p class="demo-sub">Tell us a little about your airline and we'll set up a tailored session.</p>
+          <form id="demoForm" novalidate>
+            <div class="demo-row">
+              <label>Full name <span class="req">*</span>
+                <input name="name" type="text" required placeholder="Jane Cooper" />
+              </label>
+              <label>Work email <span class="req">*</span>
+                <input name="email" type="email" required placeholder="jane@airline.com" />
+              </label>
+            </div>
+            <div class="demo-row">
+              <label>Airline <span class="req">*</span>
+                <input name="airline" type="text" required placeholder="e.g. Fly91" />
+              </label>
+              <label>Your role
+                <input name="role" type="text" placeholder="Head of CX" />
+              </label>
+            </div>
+            <div class="demo-row">
+              <label>Phone
+                <input name="phone" type="tel" placeholder="+91 98765 43210" />
+              </label>
+              <label>Monthly support volume
+                <select name="ticket_vol">
+                  <option value="">Select…</option>
+                  <option>Under 5,000 / mo</option>
+                  <option>5,000 – 25,000 / mo</option>
+                  <option>25,000 – 100,000 / mo</option>
+                  <option>100,000+ / mo</option>
+                </select>
+              </label>
+            </div>
+            <label class="demo-full">What would you like to solve?
+              <textarea name="pain_point" rows="2" placeholder="e.g. Long resolution times, low add-on revenue, agent overload…"></textarea>
+            </label>
+            <!-- honeypot -->
+            <input type="text" name="website" class="demo-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button type="submit" class="demo-submit" id="demoSubmit">Request my demo</button>
+            <p class="demo-fineprint">By submitting, you agree to be contacted about your demo. We never share your details.</p>
+          </form>
+        </div>
+        <!-- success state -->
+        <div id="demoSuccess" class="demo-success">
+          <div class="demo-check">✓</div>
+          <h2 class="demo-title">You're all set.</h2>
+          <p class="demo-sub">Thanks <span id="demoSuccessName">there</span>, our team will reach out within one business day to schedule your session. Keep an eye on your inbox.</p>
+          <button class="demo-submit" onclick="closeDemo()">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.demo-overlay{position:fixed;inset:0;z-index:200;background:rgba(28,42,48,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .25s}
+.demo-overlay.open{display:flex;opacity:1}
+.demo-modal{background:#fff;border-radius:18px;width:100%;max-width:880px;max-height:92vh;overflow:auto;position:relative;box-shadow:0 40px 120px rgba(0,0,0,.35);transform:translateY(12px) scale(.98);transition:transform .25s}
+.demo-overlay.open .demo-modal{transform:translateY(0) scale(1)}
+.demo-x{position:absolute;top:16px;right:18px;z-index:3;background:rgba(255,255,255,.85);border:none;width:32px;height:32px;border-radius:50%;font-size:15px;color:var(--gray);cursor:pointer;transition:all .15s}
+.demo-x:hover{background:var(--frost);color:var(--ink)}
+.demo-grid{display:grid;grid-template-columns:300px 1fr}
+
+.demo-aside{background:var(--slate);color:#fff;padding:34px 30px;display:flex;flex-direction:column}
+.demo-aside-top{display:flex;align-items:center;gap:10px;margin-bottom:30px}
+.demo-logo{height:30px;filter:brightness(0) invert(1)}
+.demo-aside-brand{font-weight:700;font-size:18px;letter-spacing:-.01em}
+.demo-aside-h{font-family:'Lora',serif;font-size:24px;line-height:1.3;font-weight:500;margin-bottom:24px}
+.demo-points{list-style:none;display:flex;flex-direction:column;gap:14px;flex:1}
+.demo-points li{display:flex;gap:11px;font-size:14px;color:#d2dbdf;line-height:1.45}
+.demo-points li span{color:var(--orange);font-weight:800;flex-shrink:0}
+.demo-aside-foot{margin-top:26px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#aab8be}
+.demo-aside-foot a{color:#fff;font-weight:600}
+
+.demo-form-side{padding:38px 36px 32px}
+.demo-title{font-size:25px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+.demo-sub{color:var(--gray);font-size:14px;margin-bottom:24px;line-height:1.5}
+.demo-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+#demoForm label,.demo-full{display:block;font-size:12.5px;font-weight:600;color:var(--slate);margin-bottom:14px}
+.req{color:var(--orange)}
+#demoForm input,#demoForm select,#demoForm textarea{width:100%;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s;background:#fff}
+#demoForm input:focus,#demoForm select:focus,#demoForm textarea:focus{border-color:var(--slate);box-shadow:0 0 0 3px rgba(58,82,95,.1)}
+#demoForm input.invalid{border-color:#e63946;box-shadow:0 0 0 3px rgba(230,57,70,.1)}
+#demoForm textarea{resize:vertical}
+.demo-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.demo-submit{width:100%;background:var(--orange);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:background .2s}
+.demo-submit:hover{background:#a8431f}
+.demo-submit:disabled{background:var(--gray);cursor:default}
+.demo-fineprint{font-size:11.5px;color:var(--gray);margin-top:12px;text-align:center;line-height:1.4}
+
+.demo-success{display:none;text-align:center;padding:30px 10px;flex-direction:column;align-items:center}
+.demo-success.show{display:flex}
+.demo-check{width:56px;height:56px;border-radius:50%;background:#e9f7ef;color:#22c55e;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.demo-success .demo-submit{max-width:160px;margin-top:20px}
+
+@media(max-width:720px){
+  .demo-grid{grid-template-columns:1fr}
+  .demo-aside{display:none}
+  .demo-row{grid-template-columns:1fr}
+  .demo-form-side{padding:30px 22px 26px}
+}
+</style>
+
+<script>
+(function(){
+  const API_BASE = window.AEROZAG_API_BASE;
+  const overlay = document.getElementById('demoOverlay');
+  const form = document.getElementById('demoForm');
+  const submitBtn = document.getElementById('demoSubmit');
+  const formWrap = document.getElementById('demoFormWrap');
+  const success = document.getElementById('demoSuccess');
+
+  window.openDemo = function(){
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    formWrap.style.display = 'block';
+    success.classList.remove('show');
+    setTimeout(()=>{ const f = form.querySelector('input[name=name]'); if(f) f.focus(); }, 250);
+  };
+  window.closeDemo = function(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closeDemo(); });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    // basic validation
+    let ok = true;
+    form.querySelectorAll('[required]').forEach(el=>{
+      const bad = !el.value.trim() || (el.type==='email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value));
+      el.classList.toggle('invalid', bad);
+      if(bad) ok=false;
+    });
+    if(!ok) return;
+
+    const data = Object.fromEntries(new FormData(form).entries());
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    try{
+      const res = await fetch(API_BASE + '/api/leads', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ...data, source:'demo_modal' })
+      });
+      if(!res.ok) throw new Error('bad status '+res.status);
+      document.getElementById('demoSuccessName').textContent = (data.name||'there').split(' ')[0];
+      formWrap.style.display = 'none';
+      success.classList.add('show');
+    }catch(err){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Request my demo';
+      alert("Something went wrong sending your request. Please email us at hello@aerozag.ai and we'll set it up.");
+    }
+  });
+})();
+</script>
+
+<!-- Chat widget -->
+<div class="chat-teaser" id="chatTeaser" onclick="dismissTeaser(false)">
+  <button class="ct-close" onclick="event.stopPropagation();dismissTeaser(true)">✕</button>
+  <div class="ct-avatar">Z</div>
+  <div class="ct-body">
+    <div class="ct-name">Zara <span class="ct-dot"></span></div>
+    <div class="ct-msg" id="teaserMsg"></div>
+  </div>
+</div>
+
+<div class="chat-fab" id="chatFab" title="Talk to Zara — AeroZag AI" onclick="toggleChat()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <span class="chat-badge" id="chatBadge">1</span>
+</div>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="cp-header">
+    <div class="cp-agent">
+      <div class="cp-avatar">Z</div>
+      <div>
+        <div class="cp-name">Zara</div>
+        <div class="cp-sub">AeroZag · AI Sales Assistant</div>
+      </div>
+    </div>
+    <button class="cp-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="cp-messages" id="cpMessages"></div>
+  <div class="cp-chips" id="cpChips"></div>
+  <div class="cp-input-row">
+    <input class="cp-input" id="cpInput" placeholder="Type a message…" autocomplete="off" />
+    <button class="cp-send" id="cpSend" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<style>
+/* teaser bubble */
+.chat-teaser{position:fixed;bottom:100px;right:24px;z-index:82;display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:12px 14px 12px 12px;box-shadow:0 8px 32px rgba(0,0,0,.14);border:1px solid var(--line);cursor:pointer;max-width:270px;transition:opacity .3s,transform .3s;animation:teaserIn .4s cubic-bezier(.34,1.56,.64,1) both}
+.chat-teaser.hide{opacity:0;transform:translateY(10px);pointer-events:none}
+@keyframes teaserIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.ct-close{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--gray);font-size:14px;cursor:pointer;line-height:1;padding:0}
+.ct-close:hover{color:var(--ink)}
+.ct-avatar{width:36px;height:36px;border-radius:50%;background:var(--orange);color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ct-body{padding-right:12px}
+.ct-name{font-size:12px;font-weight:600;color:var(--slate);margin-bottom:2px;display:flex;align-items:center;gap:5px}
+.ct-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block}
+.ct-msg{font-size:13px;color:var(--ink);line-height:1.45}
+
+.chat-fab{position:fixed;bottom:24px;right:24px;z-index:80;width:62px;height:62px;border-radius:50%;background:var(--orange);box-shadow:0 12px 36px rgba(192,84,48,.42);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s;border:none}
+.chat-fab:hover{transform:scale(1.06)}
+.chat-fab svg{width:28px;height:28px}
+.chat-badge{position:absolute;top:2px;right:2px;background:#e63946;color:#fff;font-size:11px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.chat-badge.hidden{display:none}
+
+.chat-panel{position:fixed;bottom:100px;right:24px;z-index:81;width:370px;max-height:560px;background:#fff;border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.18);display:none;flex-direction:column;overflow:hidden;border:1px solid var(--line)}
+.chat-panel.open{display:flex}
+
+.cp-header{background:var(--slate);padding:16px 18px;display:flex;align-items:center;justify-content:space-between}
+.cp-agent{display:flex;align-items:center;gap:12px}
+.cp-avatar{width:40px;height:40px;border-radius:50%;background:var(--orange);color:#fff;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cp-name{color:#fff;font-weight:600;font-size:15px}
+.cp-sub{color:#aab8be;font-size:12px}
+.cp-close{background:none;border:none;color:#aab8be;font-size:18px;cursor:pointer;padding:4px;line-height:1;transition:color .2s}
+.cp-close:hover{color:#fff}
+
+.cp-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.55;word-break:break-word}
+.msg.bot{background:var(--frost);color:var(--ink);align-self:flex-start;border-radius:4px 14px 14px 14px}
+.msg.user{background:var(--slate);color:#fff;align-self:flex-end;border-radius:14px 14px 4px 14px}
+.msg.typing{background:var(--frost);align-self:flex-start;padding:12px 16px}
+.typing-dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gray);margin:0 2px;animation:blink 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+.cp-chips{padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--frost);border:1px solid var(--line);color:var(--slate);font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{background:var(--slate);color:#fff;border-color:var(--slate)}
+
+.cp-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff}
+.cp-input{flex:1;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}
+.cp-input:focus{border-color:var(--slate)}
+.cp-send{width:38px;height:38px;border-radius:8px;background:var(--orange);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.cp-send:hover{background:#a84628}
+.cp-send:disabled{background:var(--gray);cursor:default}
+.cp-send svg{width:16px;height:16px}
+
+@media(max-width:420px){.chat-panel{width:calc(100vw - 24px);right:12px;bottom:90px}}
+</style>
+
+<script>
+(function(){
+  // ── Config ──────────────────────────────────────────────────────────────────
+  const API_BASE = window.AEROZAG_API_BASE;
+
+  const SESSION_ID = 'sess_' + Math.random().toString(36).slice(2) + Date.now();
+  let history = [];
+  let isOpen = false;
+  let isTyping = false;
+  let chatStarted = false;
+
+  const panel = document.getElementById('chatPanel');
+  const messages = document.getElementById('cpMessages');
+  const input = document.getElementById('cpInput');
+  const sendBtn = document.getElementById('cpSend');
+  const chips = document.getElementById('cpChips');
+  const badge = document.getElementById('chatBadge');
+  const teaser = document.getElementById('chatTeaser');
+  const teaserMsg = document.getElementById('teaserMsg');
+
+  // ── Teaser bubble ─────────────────────────────────────────────────────────
+  const teaserMessages = [
+    "👋 Hi there! Curious how AeroZag works for regional airlines?",
+    "✈️ We help airlines resolve 80% of passenger queries instantly. Want to see how?",
+    "💬 Book a 15-min demo and see AeroZag live on a real airline conversation.",
+    "🚀 See what an AI-powered passenger chatbot looks like for your airline."
+  ];
+
+  let teaserDismissed = false;
+
+  function showTeaser() {
+    if (teaserDismissed || isOpen) return;
+    const msg = teaserMessages[Math.floor(Math.random() * teaserMessages.length)];
+    teaserMsg.textContent = msg;
+    teaser.classList.remove('hide');
+    // Auto-dismiss after 8s (not a manual close, not a click-to-open)
+    setTimeout(() => { if (!isOpen && !teaserDismissed) teaser.classList.add('hide'); }, 8000);
+  }
+
+  window.dismissTeaser = function(manual) {
+    teaser.classList.add('hide');
+    if (manual) {
+      // ✕ button clicked — just hide, don't open chat
+      teaserDismissed = true;
+    } else {
+      // clicked the bubble body — open chat
+      if (!isOpen) toggleChat();
+    }
+  };
+
+  // Show teaser after 3s on page load
+  setTimeout(showTeaser, 3000);
+
+  // ── Open / close ─────────────────────────────────────────────────────────
+  window.toggleChat = function() {
+    isOpen = !isOpen;
+    panel.classList.toggle('open', isOpen);
+    if (isOpen) {
+      teaser.style.display = 'none';
+      badge.classList.add('hidden');
+      if (!chatStarted) { chatStarted = true; showGreeting(); }
+      setTimeout(() => input.focus(), 100);
+    }
+  };
+
+  window.openChat = function(intent) {
+    if (!isOpen) toggleChat();
+    if (intent === 'book_demo' && !chatStarted) {
+      chatStarted = true;
+      showGreeting('demo');
+    }
+  };
+
+  // ── Greeting ─────────────────────────────────────────────────────────────
+  function showGreeting(intent) {
+    if (intent === 'demo') {
+      addBotMessage("Great, let's get a demo on the calendar. I'm Zara, AeroZag's AI assistant. Which airline are you with and what's your role?");
+      setChips(['Book 15-min demo', 'See a quick overview first', 'Ask a question']);
+    } else {
+      addBotMessage("Hi, I'm Zara, AeroZag's AI assistant. What brings you here today?");
+      setChips(['How does AeroZag work?', 'I want to book a demo', 'Tell me about pricing', 'We\'re evaluating options']);
+    }
+  }
+
+  // ── Message rendering ────────────────────────────────────────────────────
+  function addBotMessage(text) {
+    const el = document.createElement('div');
+    el.className = 'msg bot';
+    el.innerHTML = linkify(text);
+    messages.appendChild(el);
+    scrollBottom();
+  }
+
+  function addUserMessage(text) {
+    const el = document.createElement('div');
+    el.className = 'msg user';
+    el.textContent = text;
+    messages.appendChild(el);
+    scrollBottom();
+  }
+
+  function showTyping() {
+    const el = document.createElement('div');
+    el.className = 'msg typing';
+    el.id = 'typingIndicator';
+    el.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    messages.appendChild(el);
+    scrollBottom();
+    return el;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  function setChips(options) {
+    chips.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.textContent = opt;
+      btn.onclick = () => { chips.innerHTML = ''; handleSend(opt); };
+      chips.appendChild(btn);
+    });
+  }
+
+  function scrollBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function linkify(text) {
+    return text
+      // Safety net: strip any stray chips line the backend didn't catch
+      .replace(/^\s*CHIPS:.*$/im, '')
+      .replace(/\n?→[^\n]*·[^\n]*$/m, '')
+      .trim()
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  // ── Send flow ────────────────────────────────────────────────────────────
+  window.sendMessage = function() {
+    const text = input.value.trim();
+    if (!text || isTyping) return;
+    input.value = '';
+    handleSend(text);
+  };
+
+  async function handleSend(text) {
+    if (isTyping) return;
+    chips.innerHTML = '';
+    addUserMessage(text);
+    isTyping = true;
+    sendBtn.disabled = true;
+    const typingEl = showTyping();
+
+    try {
+      const res = await fetch(API_BASE + '/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: SESSION_ID, message: text, history })
+      });
+
+      removeTyping();
+
+      if (!res.ok) throw new Error('API error ' + res.status);
+
+      const data = await res.json();
+      history.push({ role: 'user', content: text });
+      history.push({ role: 'assistant', content: data.reply });
+
+      // Keep last 10 exchanges in history to avoid huge payloads
+      if (history.length > 20) history = history.slice(-20);
+
+      addBotMessage(data.reply);
+
+      if (Array.isArray(data.chips) && data.chips.length) {
+        setChips(data.chips);
+      } else if (data.demo_booked) {
+        setChips(['Perfect, I\'ll wait for the invite', 'Can we schedule for next week?']);
+      } else if (data.lead_captured) {
+        setChips(['Thanks! What happens next?', 'I have another question']);
+      }
+    } catch (err) {
+      removeTyping();
+      addBotMessage("Sorry, I'm having connectivity issues. You can reach us at **hello@aerozag.ai** or click the demo button above.");
+    } finally {
+      isTyping = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+})();
+</script>
+
+</body>
+</html>
