@@ -31,6 +31,7 @@ db.exec(`
     score       INTEGER,       -- 1-10
     source      TEXT DEFAULT 'chatbot',
     conv_id     TEXT,
+    linkedin    TEXT,
     email_sent  INTEGER DEFAULT 0,
     created_at  TEXT DEFAULT (datetime('now'))
   );
@@ -56,5 +57,10 @@ db.exec(`
     FOREIGN KEY (conv_id) REFERENCES conversations(id)
   );
 `);
+
+// Migrate: add linkedin column if it doesn't exist yet
+try {
+  db.exec(`ALTER TABLE leads ADD COLUMN linkedin TEXT`);
+} catch (_) { /* column already exists */ }
 
 export default db;

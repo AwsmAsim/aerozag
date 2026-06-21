@@ -16,6 +16,7 @@ export interface LeadInput {
   score?: number;
   source?: string;
   conv_id?: string;
+  linkedin?: string;
   is_demo?: boolean;
 }
 
@@ -24,9 +25,9 @@ export async function saveLead(input: LeadInput): Promise<string> {
 
   db.prepare(`
     INSERT OR IGNORE INTO leads
-      (id, name, email, phone, airline, role, team_size, ticket_vol, pain_point, timeline, intent, score, source, conv_id)
+      (id, name, email, phone, airline, role, team_size, ticket_vol, pain_point, timeline, intent, score, source, conv_id, linkedin)
     VALUES
-      (@id, @name, @email, @phone, @airline, @role, @team_size, @ticket_vol, @pain_point, @timeline, @intent, @score, @source, @conv_id)
+      (@id, @name, @email, @phone, @airline, @role, @team_size, @ticket_vol, @pain_point, @timeline, @intent, @score, @source, @conv_id, @linkedin)
   `).run({
     id,
     name: input.name,
@@ -41,7 +42,8 @@ export async function saveLead(input: LeadInput): Promise<string> {
     intent: input.intent ?? null,
     score: input.score ?? null,
     source: input.source ?? 'chatbot',
-    conv_id: input.conv_id ?? null
+    conv_id: input.conv_id ?? null,
+    linkedin: input.linkedin ?? null
   });
 
   // Send email notification (fire-and-forget — DB already persisted)

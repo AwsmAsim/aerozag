@@ -201,11 +201,74 @@
       <div class="hero-stats">
         <div class="s"><b>$800B+</b><span>Global airline industry</span></div>
         <div class="s"><b>Regional &amp; LCCs</b><span>The underserved growth segment</span></div>
-        <div class="s"><b>No direct peer</b><span>The Indegene-for-airlines position</span></div>
+        <div class="s"><b>No direct peer</b><span>AI-native + airline-deep — a rare combination</span></div>
       </div>
     </div>
     <div class="invest-visual">
-      <img src="https://picsum.photos/id/1016/1400/900" alt="AeroZag — high altitude view representing intelligence born of the sky" loading="lazy" width="700" height="520" />
+      <svg viewBox="0 0 700 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);display:block" aria-hidden="true">
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1C3040"/>
+            <stop offset="100%" stop-color="#2B3E48"/>
+          </linearGradient>
+          <radialGradient id="glowOrb" cx="72%" cy="28%" r="45%">
+            <stop offset="0%" stop-color="#C05430" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#C05430" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3A525F" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#2B3E48" stop-opacity="0.95"/>
+          </linearGradient>
+        </defs>
+        <!-- Background -->
+        <rect width="700" height="460" fill="url(#skyGrad)"/>
+        <rect width="700" height="460" fill="url(#glowOrb)"/>
+        <!-- Grid lines (data-layer aesthetic) -->
+        <g stroke="rgba(255,255,255,0.04)" stroke-width="1">
+          <line x1="0" y1="92" x2="700" y2="92"/>
+          <line x1="0" y1="184" x2="700" y2="184"/>
+          <line x1="0" y1="276" x2="700" y2="276"/>
+          <line x1="0" y1="368" x2="700" y2="368"/>
+          <line x1="140" y1="0" x2="140" y2="460"/>
+          <line x1="280" y1="0" x2="280" y2="460"/>
+          <line x1="420" y1="0" x2="420" y2="460"/>
+          <line x1="560" y1="0" x2="560" y2="460"/>
+        </g>
+        <!-- Stylised flight arc -->
+        <path d="M80,340 Q240,120 560,90" stroke="rgba(192,84,48,0.35)" stroke-width="1.5" fill="none" stroke-dasharray="6 4"/>
+        <path d="M80,360 Q280,160 580,110" stroke="rgba(192,84,48,0.18)" stroke-width="1" fill="none" stroke-dasharray="4 6"/>
+        <!-- Plane icon at arc end -->
+        <g transform="translate(548,84) rotate(-22)">
+          <path d="M0,0 L18,6 L0,12 L4,6 Z" fill="#F0A98C" opacity="0.85"/>
+        </g>
+        <!-- Pulsing dot at origin -->
+        <circle cx="80" cy="350" r="5" fill="#C05430" opacity="0.9"/>
+        <circle cx="80" cy="350" r="10" fill="none" stroke="#C05430" stroke-width="1" opacity="0.45"/>
+        <!-- Main metric card -->
+        <rect x="56" y="38" width="252" height="136" rx="12" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="74" y="68" font-family="Inter,sans-serif" font-size="10" font-weight="700" fill="#F0A98C" letter-spacing="1.5">PASSENGER INTELLIGENCE</text>
+        <text x="74" y="98" font-family="Inter,sans-serif" font-size="36" font-weight="800" fill="#ffffff">84%</text>
+        <text x="74" y="118" font-family="Inter,sans-serif" font-size="12" fill="#9AB0B8">queries resolved instantly</text>
+        <line x1="74" y1="130" x2="290" y2="130" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <text x="74" y="148" font-family="Inter,sans-serif" font-size="11" fill="#6BD3A0">↑ 2.3× vs. call-centre baseline</text>
+        <!-- Secondary metric card -->
+        <rect x="390" y="56" width="218" height="116" rx="12" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="408" y="84" font-family="Inter,sans-serif" font-size="10" font-weight="700" fill="#F0A98C" letter-spacing="1.5">ADD-ON UPLIFT</text>
+        <text x="408" y="116" font-family="Inter,sans-serif" font-size="36" font-weight="800" fill="#ffffff">+31%</text>
+        <text x="408" y="136" font-family="Inter,sans-serif" font-size="12" fill="#9AB0B8">ancillary revenue / passenger</text>
+        <text x="408" y="156" font-family="Inter,sans-serif" font-size="11" fill="#6BD3A0">↑ in-chat upsell conversion</text>
+        <!-- Escalation card bottom right -->
+        <rect x="390" y="200" width="218" height="100" rx="12" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="408" y="226" font-family="Inter,sans-serif" font-size="10" font-weight="700" fill="#F0A98C" letter-spacing="1.5">SMART ESCALATION</text>
+        <text x="408" y="260" font-family="Inter,sans-serif" font-size="32" font-weight="800" fill="#ffffff">16%</text>
+        <text x="408" y="280" font-family="Inter,sans-serif" font-size="12" fill="#9AB0B8">of conversations reach an agent</text>
+        <!-- Status chip -->
+        <rect x="56" y="200" width="136" height="28" rx="14" fill="rgba(107,211,160,0.15)" stroke="rgba(107,211,160,0.3)" stroke-width="1"/>
+        <circle cx="74" cy="214" r="4" fill="#6BD3A0"/>
+        <text x="84" y="218" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#6BD3A0">Live in production</text>
+        <!-- Bottom label -->
+        <text x="56" y="432" font-family="Inter,sans-serif" font-size="11" fill="rgba(255,255,255,0.3)" letter-spacing="0.5">AeroZag · Passenger Intelligence Layer · indicative metrics</text>
+      </svg>
     </div>
   </div>
 </section>
@@ -213,7 +276,7 @@
 <!-- Manifesto -->
 <section class="manifesto-invest">
   <div class="wrap">
-    <p class="serif">AeroZag is the <b>Indegene of airlines</b>. A tech-native, airline-specialist company that embeds AI intelligence into every system, every decision, and every flight — not as a vendor, but as infrastructure.</p>
+    <p class="serif">AeroZag is a <b>tech-native, airline-specialist company</b> that embeds AI intelligence into every system, every decision, and every flight — not as a vendor, but as infrastructure.</p>
     <div style="margin-top:22px;font-size:13px;color:var(--gray);letter-spacing:.04em;text-transform:uppercase;font-weight:600">AI infrastructure for the skies</div>
   </div>
 </section>
